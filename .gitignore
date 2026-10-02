@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.worktrees/
+.superpowers/
+playwright-report/
+test-results/
+.env
+.env.*
+*.log
