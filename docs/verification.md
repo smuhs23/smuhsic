@@ -1,6 +1,6 @@
 # Verifikation von 2317
 
-Stand: **2. Oktober 2026**. Lokale Prüfung des vollständigen Studios, kein Nachweis einer öffentlichen Bereitstellung oder eines GitHub-Actions-Laufs.
+Stand: **2. Oktober 2026**. Lokale Prüfung des vollständigen Studios und verifizierter Quellcode-Upload zu GitHub. Kein öffentliches App-Deployment; Remote-CI ist separat unten dokumentiert.
 
 ## Ausgeführte Prüfungen
 
@@ -20,7 +20,7 @@ Die fünf übersprungenen Fälle betreffen Aufnahmeabbruch bei Grafikverlust, ei
 - Chromium **153.0.8010.0**, Linux, Software-WebGL über ANGLE/SwiftShader. Der offizielle Playwright-Chromium-ZIP-Download lieferte in dieser Umgebung eine leere Datei. Für die lokale Prüfung wurde ein Chromium-153-Binary aus dem registrierten Paket `@sparticuz/chromium` verwendet, außerhalb der Produktabhängigkeiten. `E2E_CHROMIUM_PATH` ist der optionale Testpfad dafür.
 - Offizielles Playwright **WebKit Build 2359** für Ubuntu 24.04. Benötigte Ubuntu-Bibliotheken wurden für den Test separat entpackt. Die generische Host-Bibliotheksprüfung wurde für diese lokale Umgebung übersprungen; die Browserfälle wurden tatsächlich ausgeführt. Die Canvas-API `captureStream` fehlt hier.
 - Playwright 1.63.0; Node 24.19.0; npm 11.9.0.
-- CI installiert die offiziellen Playwright-Browser und ihre Systemabhängigkeiten. Der CI-Workflow liegt bei; ein erfolgreicher Remote-Lauf wurde noch nicht geprüft.
+- CI installiert die offiziellen Playwright-Browser und ihre Systemabhängigkeiten. Der erste Remote-Lauf ist unten dokumentiert; aktuelle Ergebnisse stehen in GitHub Actions.
 
 **Eine Prüfung auf einem echten iPhone mit Safari steht aus.** WebKit auf Linux und eine 390-Pixel-Viewportprüfung sind kein Ersatz für iPhone-Audiounterbrechungen, Speichergrenzen oder die dortige native Aufnahmefähigkeit.
 
@@ -65,3 +65,11 @@ Die wichtigen Befunde der unabhängigen Gesamtprüfung wurden mit zuvor fehlgesc
 ## Übergabestatus
 
 Der Nutzer hat `smuhs23/smuhsic` am 2. Oktober 2026 angelegt und den Upload in das öffentliche Repository ausdrücklich freigegeben. Der Connector bestätigt Owner, öffentliche Sichtbarkeit und Schreibrechte. Die automatisch angelegte README wird durch die vollständige Projektdokumentation ersetzt; der ursprüngliche Initialcommit bleibt als Parent erhalten. Der Quellstand wird über Git-Daten-API bereitgestellt und anhand der Remote-Dateihashes geprüft. Ein erfolgreicher GitHub-Actions-Lauf ist erst nach tatsächlicher Prüfung bestätigt; lokale Testergebnisse sind kein Nachweis für Remote-CI.
+
+## GitHub Actions und Schleifen-Regression
+
+Der erste Upload auf `main` (Commit `d86e0f34ef5e65177b0ebfe128bbe227686c0d8d`) wurde für alle 73 Pfade einschließlich Dateimodus und Blob-Hash mit dem lokalen Stand abgeglichen: keine Abweichung. Der ursprüngliche GitHub-Initialcommit bleibt erhalten; die private Referenzdatei wurde nicht hochgeladen.
+
+Im [ersten Actions-Lauf](https://github.com/smuhs23/smuhsic/actions/runs/37059894590) bestanden Typprüfung, 69 Unit-Tests, Build und WebKit (23 bestanden, 5 native Aufnahmefähigkeits-Skips). Chromium bestand 27 Fälle; der Mood-Test scheiterte am regulären Schleifenwechsel der 16-Sekunden-Demo (15,86 auf 0,20 Sekunden). Die alte lineare Positionsprüfung war dafür ungeeignet. Ein gezielt ausgelöster Schleifenwechsel reproduzierte denselben Fehler lokal (15,50 auf 0,46 Sekunden).
+
+Die korrigierte Prüfung erhält die Kontrolle von Medienidentität, Quelle und aktiver Wiedergabe. Rückwärtsbewegung ist nur erlaubt, wenn die verstrichene Zeit das natürliche Schleifenende erklärt und die neue Position dazu passt. Chromium übt diese Grenze gezielt aus. Der Medien-Zeitgeber muss dabei nicht exakt dem Browser-Zeitgeber entsprechen; insbesondere native WebKit-/GStreamer-Seeks sind asynchron. Produktcode und Demo wurden nicht verändert. Die aktuellen Remote-Ergebnisse sind unter [Actions](https://github.com/smuhs23/smuhsic/actions) sichtbar.
